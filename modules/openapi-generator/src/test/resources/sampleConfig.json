@@ -3,6 +3,7 @@
     "inputSpec" : "swagger.yaml",
     "outputDir" : "src/gen/java",
     "verbose" : true,
+    "clean": false,
     "skipOverwrite" : true,
     "templateDir" : "src/main/resources",
     "auth" : "hello:world",

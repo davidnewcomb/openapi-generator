@@ -347,6 +347,10 @@
         "title": "Config Options for nodejs-express-server",
         "sidebar_label": "nodejs-express-server"
       },
+      "generators/nodejs-openapibackendjs": {
+        "title": "Config Options for nodejs-openapibackendjs",
+        "sidebar_label": "nodejs-openapibackendjs"
+      },
       "generators/nodejs-server-deprecated": {
         "title": "Config Options for nodejs-server-deprecated",
         "sidebar_label": "nodejs-server-deprecated"

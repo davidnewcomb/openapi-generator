@@ -30,6 +30,8 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.tags.Tag;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.comparator.PathFileComparator;
 import org.apache.commons.lang3.ObjectUtils;
@@ -857,6 +859,14 @@ public class DefaultGenerator implements Generator {
             }
         }
 
+        try {
+//        if (Boolean.parseBoolean(GlobalSettings.getProperty("clean"))) {
+        	File f = new File(config.outputFolder());
+        	FileUtils.deleteDirectory(f);
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
+//        }
         // resolve inline models
         InlineModelResolver inlineModelResolver = new InlineModelResolver();
         inlineModelResolver.flatten(openAPI);
@@ -1005,7 +1015,10 @@ public class DefaultGenerator implements Generator {
     }
 
     protected File processTemplateToFile(Map<String, Object> templateData, String templateName, String outputFilename, boolean shouldGenerate, String skippedByOption) throws IOException {
-        String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
+        if (templateName.equals("index.mustache")) {
+        	LOGGER.error("processTemplateToFile: " + skippedByOption + " shouldGenerate:" + shouldGenerate);
+        }
+    	String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
         File target = new File(adjustedOutputFilename);
         if (ignoreProcessor.allowsFile(target)) {
             if (shouldGenerate) {

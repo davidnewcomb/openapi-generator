@@ -1,0 +1,50 @@
+const OpenAPIBackend = require('openapi-backend').default
+
+
+{{#operations}}
+{{#operation}}
+const {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase = require('./{{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase')
+const {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase = new {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase(true)
+{{/operation}}
+{{/operations}}
+
+
+let api = new OpenAPIBackend({
+    definition: './witp.yaml',
+    apiRoot: '{{contextPath}}'
+})
+
+function unauthorizedHandler(c, req, res) {
+  return res.status(401).json({ status: 401, err: 'Please authenticate first' });
+}
+
+function notImplementedHandler(c, req, res) {
+  return res.status(404).json({ status: 501, err: 'No handler registered for operation' });
+}
+
+function methodNotAllowedHandler(c, req, res) {
+  return res.status(405).json({ status: 405, err: 'Method not allowed' });
+}
+
+const defaultMappings = {
+{{#operations}}
+{{#operation}}
+    {{operationId}}: async (c, req, res) => await {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase.expressHandler(api, c, req, res),
+{{/operation}}
+{{/operations}}
+
+    validationFail: async (c, req, res) => res.status(400).json({ err: c.validation.errors }),
+    notFound: async (c, req, res) => res.status(404).json({ err: 'not found'}),
+    unauthorized: async unauthorizedHandler,
+    notImplemented: async notImplementedHandler,
+    methodNotAllowed: async methodNotAllowedHandler
+})
+
+
+api.go = (yaml, root, ops = {}) => {
+    const allOps = {defaultMappings, ...ops}
+    api.register(defaultMappings)
+    api.init()
+}
+
+module.exports = api

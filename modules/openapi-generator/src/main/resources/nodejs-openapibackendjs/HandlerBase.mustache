@@ -1,0 +1,73 @@
+
+const HandlerBase = class {
+
+    constructor(name, debug = false) {
+        if (name === undefined || name === '') {
+            throw new Error('name can not be empty')
+        }
+        this.name = name
+        this.debug = true
+        this.expressHandler = this.expressHandler.bind(this)
+        this.handler = this.handler.bind(this)
+    }
+
+    async expressHandler(api, context, req, res) {
+        try {
+            const headers = {}
+            for (let i = 0 ; i < req.rawHeaders.length ; i+=2) {
+                headers[req.rawHeaders[i]] = req.rawHeaders[i+1]
+            }
+
+            const parsedRequest = api.router.parseRequest(
+                {
+                    method: req.method,
+                    path: req.url,
+                    headers: headers
+                }
+                , api.getOperation(this.operationId()))
+
+            console.log('****op id='+ this.operationId())
+            console.log('****parsedRequest='+ JSON.stringify(parsedRequest, null, 4))
+
+            const params = {}
+            context.operation.parameters.forEach((item, i) => {
+                if (item.in === 'path') {
+                    params[item.name] = parsedRequest.params[item.name]
+                } else if (item.in === 'query') {
+                    params[item.name] = parsedRequest.query[item.name]
+                } else {
+                    console.err('*** ERROR implement parameter type "' + item.in + '"')
+                }
+            })
+            console.log('====================================')
+            console.log('API Handler: '+ this.operationId())
+            console.log('Parameters: '+ JSON.stringify(params, null, 4))
+            console.log('------------------------------------')
+
+            const ret = await this.handler(params)
+
+            console.log('------------------------------------')
+            console.log('Returned: '+ JSON.stringify(ret, null, 4))
+            console.log('====================================')
+
+            res.json(ret)
+
+        } catch (err) {
+            if (this.debug) {
+                console.log('HandlerBase:err', JSON.stringify(err, null, 4))
+            }
+            res.status(500).json({ err: err })
+        }
+
+    }
+
+    operationId() {
+        return this.name
+    }
+
+    async handler(p) {
+        return {ok: false}
+    }
+}
+
+module.exports = HandlerBase

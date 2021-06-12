@@ -1,0 +1,40 @@
+/**
+ * The {{{classname}}}Controller file is a very simple one, which does not need to be changed manually,
+ * unless there's a case where business logic reoutes the request to an entity which is not
+ * the service.
+ * The heavy lifting of the Controller item is done in Request.js - that is where request
+ * parameters are extracted and sent to the service, and where response is handled.
+ */
+
+const HandlerBase = require('./HandlerBase')
+
+
+{{#operations}}
+{{#operation}}
+
+class {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase extends HandlerBase {
+
+    constructor(debug = false) {
+        super('{{operationId}}', debug)
+    }
+
+    handler({
+    {{#allParams}}
+        {{paramName}}{{^-last}},{{/-last}}
+    {{/allParams}}
+    }) {
+        // return
+        throw new Error('{{operationId}} is not implemented')
+    }
+}
+
+{{/operation}}
+{{/operations}}
+
+module.exports = {
+  {{#operations}}
+  {{#operation}}
+  {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase{{^-last}},{{/-last}}
+  {{/operation}}
+  {{/operations}}
+}

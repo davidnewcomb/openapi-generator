@@ -477,6 +477,11 @@ public class CodegenConfigurator {
         return this;
     }
 
+    public CodegenConfigurator setClean(boolean clean) {
+        workflowSettingsBuilder.withClean(clean);
+        return this;
+    }
+
     @SuppressWarnings("WeakerAccess")
     public Context<?> toContext() {
         Validate.notEmpty(generatorName, "generator name must be specified");

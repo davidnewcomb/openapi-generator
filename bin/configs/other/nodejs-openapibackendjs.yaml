@@ -1,0 +1,4 @@
+generatorName: nodejs-openapibackendjs
+outputDir: samples/server/petstore/nodejs-openapibackendjs
+inputSpec: modules/openapi-generator/src/test/resources/2_0/petstore.yaml
+templateDir: modules/openapi-generator/src/main/resources/nodejs-openapibackendjs

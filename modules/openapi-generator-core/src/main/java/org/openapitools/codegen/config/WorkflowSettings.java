@@ -41,6 +41,7 @@ public class WorkflowSettings {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkflowSettings.class);
     public static final String DEFAULT_OUTPUT_DIR = ".";
     public static final boolean DEFAULT_VERBOSE = false;
+    public static final boolean DEFAULT_CLEAN = false;
     public static final boolean DEFAULT_SKIP_OVERWRITE = false;
     public static final boolean DEFAULT_REMOVE_OPERATION_ID_PREFIX = false;
     public static final boolean DEFAULT_SKIP_OPERATION_EXAMPLE = false;
@@ -56,6 +57,7 @@ public class WorkflowSettings {
     private String inputSpec;
     private String outputDir = DEFAULT_OUTPUT_DIR;
     private boolean verbose = DEFAULT_VERBOSE;
+    private boolean clean = DEFAULT_CLEAN;
     private boolean skipOverwrite = DEFAULT_SKIP_OVERWRITE;
     private boolean removeOperationIdPrefix = DEFAULT_REMOVE_OPERATION_ID_PREFIX;
     private boolean skipOperationExample = DEFAULT_SKIP_OPERATION_EXAMPLE;
@@ -105,6 +107,7 @@ public class WorkflowSettings {
         builder.inputSpec = copy.getInputSpec();
         builder.outputDir = copy.getOutputDir();
         builder.verbose = copy.isVerbose();
+        builder.clean = copy.isClean();
         builder.skipOverwrite = copy.isSkipOverwrite();
         builder.removeOperationIdPrefix = copy.isRemoveOperationIdPrefix();
         builder.skipOperationExample = copy.isSkipOperationExample();
@@ -151,6 +154,15 @@ public class WorkflowSettings {
      */
     public boolean isVerbose() {
         return verbose;
+    }
+
+    /**
+     * Configures cleaning before building. If the target folder exists it will be deleted at the beginning.
+     *
+     * @return <code>true</code> if clean mode, <code>false</code> otherwise.
+     */
+    public boolean isClean() {
+        return clean;
     }
 
     /**
@@ -303,6 +315,7 @@ public class WorkflowSettings {
         private String inputSpec;
         private String outputDir = DEFAULT_OUTPUT_DIR;
         private Boolean verbose = DEFAULT_VERBOSE;
+        private Boolean clean = DEFAULT_CLEAN;
         private Boolean skipOverwrite = DEFAULT_SKIP_OVERWRITE;
         private Boolean removeOperationIdPrefix = DEFAULT_REMOVE_OPERATION_ID_PREFIX;
         private Boolean skipOperationExample = DEFAULT_SKIP_OPERATION_EXAMPLE;
@@ -359,6 +372,17 @@ public class WorkflowSettings {
          */
         public Builder withVerbose(Boolean verbose) {
             this.verbose = verbose != null ? verbose : Boolean.valueOf(DEFAULT_VERBOSE);
+            return this;
+        }
+
+        /**
+         * Sets the {@code clean} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param verbose the {@code verbose} to set
+         * @return a reference to this Builder
+         */
+        public Builder withClean(Boolean clean) {
+            this.clean = clean != null ? clean : Boolean.valueOf(DEFAULT_CLEAN);
             return this;
         }
 

@@ -45,6 +45,9 @@ public class Generate extends OpenApiGeneratorCommand {
     @Option(name = {"-v", "--verbose"}, description = "verbose mode")
     private Boolean verbose;
 
+    @Option(name = {"--clean"}, description = "Clean before build")
+    private Boolean clean;
+
     @Option(name = {"-g", "--generator-name"}, title = "generator name",
             description = "generator to use (see list command for list)")
     private String generatorName;
@@ -290,6 +293,10 @@ public class Generate extends OpenApiGeneratorCommand {
 
         if (verbose != null) {
             configurator.setVerbose(verbose);
+        }
+
+        if (clean != null) {
+            configurator.setClean(clean);
         }
 
         if (skipOverwrite != null) {
