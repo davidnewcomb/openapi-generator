@@ -1,0 +1,6 @@
+generatorName: nodejs-openapi-backend
+outputDir: samples/server/petstore/nodejs/openapi/backend
+inputSpec: modules/openapi-generator/src/test/resources/3_0/petstore.yaml
+templateDir: modules/openapi-generator/src/main/resources/nodejs-openapi-backend
+additionalProperties:
+  hideGenerationTimestamp: "true"

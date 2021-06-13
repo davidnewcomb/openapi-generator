@@ -861,7 +861,6 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
      *
      * @param dataType   type name
      * @param dataFormat type format
-     * @return generated codegen type
      */
     private void toColumnTypeArgs(String dataType, String dataFormat, Object min, Object max, SqlTypeArgs args) {
         String sqlType = toColumnType(dataType, dataFormat);
