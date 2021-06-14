@@ -1,0 +1,99 @@
+/**
+ * The {{{classname}}}Controller file is a very simple one, which does not need to be changed manually,
+ * unless there's a case where business logic reoutes the request to an entity which is not
+ * the service.
+ * The heavy lifting of the Controller item is done in Request.js - that is where request
+ * parameters are extracted and sent to the service, and where response is handled.
+ */
+
+const HandlerBase = require('./HandlerBase')
+
+
+{{#operations}}
+{{#operation}}
+
+/*
+{{description}}{{^description}}(no description){{/description}}
+Path: {{path}}
+Method: {{httpMethod}}
+*/
+class {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase extends HandlerBase {
+
+    constructor(debug = false) {
+        super('{{operationId}}', debug)
+    }
+
+    handler({
+    {{#allParams}}
+        {{paramName}}{{^-last}},{{/-last}}
+    {{/allParams}}
+    }) {
+    {{#returnType}}
+        // return new {{returnType}}()
+    {{/returnType}}
+        throw new Error('{{operationId}} is not implemented')
+    }
+}
+const {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase = new {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase(true)
+{{/operation}}
+{{/operations}}
+
+const DefaultRegistry = {
+  {{#operations}}
+  {{#operation}}
+  {{operationId}}: async (c, req, res) => await {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase.expressHandler(api, c, req, res),
+  {{/operation}}
+  {{/operations}}
+  
+//  notFound: async (c, req, res) => res.status(404).json({ err: 'not found'}),
+//  unauthorized: async (c, req, res) => res.status(401).json({ status: 401, err: 'Please authenticate first' }),
+//  notImplemented: async (c, req, res) => res.status(404).json({ status: 501, err: 'No handler registered for operation' }),
+//  validationFail: async (c, req, res) => res.status(400).json({ err: c.validation.errors }),
+//  methodNotAllowed: async (c, req, res) => res.status(405).json({ status: 405, err: 'Method not allowed' })
+}
+
+module.exports = {
+  {{#operations}}
+  {{#operation}}
+  {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase,
+  {{/operation}}
+  {{/operations}}
+  DefaultRegistry
+}
+
+
+
+/**
+
+# {{classname}}{{#description}}
+{{description}}{{/description}}
+All URIs are relative to *{{basePath}}*
+Method | HTTP request | Description
+------------- | ------------- | -------------
+{{#operations}}{{#operation}}[**{{operationId}}**]({{classname}}.md#{{operationId}}) | **{{httpMethod}}** {{path}} | {{#summary}}{{summary}}{{/summary}}
+{{/operation}}{{/operations}}
+{{#operations}}
+{{#operation}}
+<a name="{{operationId}}"></a>
+# **{{operationId}}**
+> {{#returnType}}{{returnType}} {{/returnType}}{{operationId}}({{#allParams}}{{{paramName}}}{{^-last}}, {{/-last}}{{/allParams}})
+{{summary}}{{#notes}}
+{{notes}}{{/notes}}
+### Parameters
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}
+{{#allParams}} **{{paramName}}** | {{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}{{#generateModelDocs}}[**{{dataType}}**]({{baseType}}.md){{/generateModelDocs}}{{^generateModelDocs}}**{{dataType}}**{{/generateModelDocs}}{{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#defaultValue}} [default to {{defaultValue}}]{{/defaultValue}}{{#allowableValues}} [enum: {{#values}}{{{.}}}{{^-last}}, {{/-last}}{{/values}}]{{/allowableValues}}
+{{/allParams}}
+### Return type
+{{#returnType}}{{#returnTypeIsPrimitive}}**{{returnType}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}{{#generateModelDocs}}[**{{returnType}}**]({{returnBaseType}}.md){{/generateModelDocs}}{{^generateModelDocs}}**{{returnType}}**{{/generateModelDocs}}{{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}null (empty response body){{/returnType}}
+### Authorization
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{name}}](../README.md#{{name}}){{^-last}}, {{/-last}}{{/authMethods}}
+### HTTP request headers
+ - **Content-Type**: {{#consumes}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+ - **Accept**: {{#produces}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
+{{/operation}}
+{{/operations}}
+
+
+*/

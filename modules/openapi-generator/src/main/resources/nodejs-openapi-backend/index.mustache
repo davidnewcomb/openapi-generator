@@ -1,0 +1,59 @@
+{{#modelPackage}}
+{{#models}}
+{{#model}}
+const {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}} = require('./Models/{{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}}')
+{{/model}}
+{{/models}}
+{{/modelPackage}}
+
+{{#generateApiDocs}}
+{{#apiInfo}}
+{{#apis}}
+const {{baseName}}DefaultRegistry = require('./Apis/{{classname}}').DefaultRegistry
+{{#operations}}
+{{#operation}}
+const {{baseName}}{{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase = require('./Apis/{{classname}}').{{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase
+{{/operation}}
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
+{{/generateApiDocs}}
+
+modules.exports = {
+
+    // Models
+{{#modelPackage}}
+{{#models}}
+{{#model}}
+    {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}},
+{{/model}}
+{{/models}}
+{{/modelPackage}}
+
+    // Operations
+{{#generateApiDocs}}
+{{#apiInfo}}
+{{#apis}}
+{{#operations}}
+{{#operation}}
+    {{baseName}}{{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase,
+{{/operation}}
+{{/operations}}
+    {{classname}}DefaultRegistry,
+{{/apis}}
+{{/apiInfo}}
+{{/generateApiDocs}}
+
+}
+/*
+    | {{classname}}
+    | {{operationId}}
+    | {{apiDocPath}}
+    | {{classname}}
+    | {{operationIdLowerCase}})
+    | {{httpMethod}}
+    | {{path}}
+    | {{#summary}}
+    |  {{{summary}}}
+    |{{/summary}}
+*/

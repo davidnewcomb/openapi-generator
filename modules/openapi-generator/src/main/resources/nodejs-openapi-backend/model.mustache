@@ -1,0 +1,27 @@
+{{#models}}
+{{#model}}
+
+/*
+{{description}}{{^description}}(no description){{/description}}
+*/
+
+export default class {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}} {
+
+    contructor() {
+{{#vars}}
+        {{#defaultValue}}this.{{name}} = {{{.}}} // default {{/defaultValue}}{{^defaultValue}}this.{{name}} = '' // guess!{{/defaultValue}}
+{{/vars}}
+    }
+
+{{#vars}}
+    {{getter}}() {
+        return this.{{name}}
+    }
+    {{setter}}(x) {
+        this.{{name}} = x
+    }
+{{/vars}}
+}
+
+{{/model}}
+{{/models}}
