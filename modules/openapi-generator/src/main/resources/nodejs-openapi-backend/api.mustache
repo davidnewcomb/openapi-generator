@@ -39,26 +39,26 @@ const {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase = new
 {{/operations}}
 
 const DefaultRegistry = {
-  {{#operations}}
-  {{#operation}}
-  {{operationId}}: async (c, req, res) => await {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase.expressHandler(api, c, req, res),
-  {{/operation}}
-  {{/operations}}
+    {{#operations}}
+    {{#operation}}
+    {{operationId}}: async (c, req, res) => await {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase.expressHandler(null, c, req, res),
+    {{/operation}}
+    {{/operations}}
   
-//  notFound: async (c, req, res) => res.status(404).json({ err: 'not found'}),
-//  unauthorized: async (c, req, res) => res.status(401).json({ status: 401, err: 'Please authenticate first' }),
-//  notImplemented: async (c, req, res) => res.status(404).json({ status: 501, err: 'No handler registered for operation' }),
-//  validationFail: async (c, req, res) => res.status(400).json({ err: c.validation.errors }),
-//  methodNotAllowed: async (c, req, res) => res.status(405).json({ status: 405, err: 'Method not allowed' })
+    //  notFound: async (c, req, res) => res.status(404).json({ err: 'not found'}),
+    //  unauthorized: async (c, req, res) => res.status(401).json({ status: 401, err: 'Please authenticate first' }),
+    //  notImplemented: async (c, req, res) => res.status(404).json({ status: 501, err: 'No handler registered for operation' }),
+    //  validationFail: async (c, req, res) => res.status(400).json({ err: c.validation.errors }),
+    //  methodNotAllowed: async (c, req, res) => res.status(405).json({ status: 405, err: 'Method not allowed' })
 }
 
 module.exports = {
-  {{#operations}}
-  {{#operation}}
-  {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase,
-  {{/operation}}
-  {{/operations}}
-  DefaultRegistry
+    {{#operations}}
+    {{#operation}}
+    {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase,
+    {{/operation}}
+    {{/operations}}
+    DefaultRegistry
 }
 
 

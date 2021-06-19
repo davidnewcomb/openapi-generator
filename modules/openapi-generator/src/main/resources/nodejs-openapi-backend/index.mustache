@@ -19,7 +19,7 @@ const {{baseName}}{{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}Han
 {{/apiInfo}}
 {{/generateApiDocs}}
 
-modules.exports = {
+module.exports = {
 
     // Models
 {{#modelPackage}}
@@ -39,21 +39,9 @@ modules.exports = {
     {{baseName}}{{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase,
 {{/operation}}
 {{/operations}}
-    {{classname}}DefaultRegistry,
+    {{baseName}}DefaultRegistry,
 {{/apis}}
 {{/apiInfo}}
 {{/generateApiDocs}}
 
 }
-/*
-    | {{classname}}
-    | {{operationId}}
-    | {{apiDocPath}}
-    | {{classname}}
-    | {{operationIdLowerCase}})
-    | {{httpMethod}}
-    | {{path}}
-    | {{#summary}}
-    |  {{{summary}}}
-    |{{/summary}}
-*/

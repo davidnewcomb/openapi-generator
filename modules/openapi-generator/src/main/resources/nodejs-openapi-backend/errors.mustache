@@ -1,0 +1,52 @@
+
+class GeneralError extends Error {
+
+    constructor(message, code = 500, aux = null) {
+        super(message)
+        this.code = code
+        this.aux = aux
+        this.errorType = 0
+    }
+
+    getCode() {
+        return this.code
+    }
+
+    getMessage() {
+        return this.message
+    }
+
+    getAux() {
+        return this.aux
+    }
+
+    getName() {
+        return this.name
+    }
+    
+    getErrorType() {
+        return this.errorType
+    }
+    
+    getPacket() {
+        return {
+            httpCode: this.code,
+            message: this.message,
+            errorType: this.errorType
+        }
+    }
+}
+
+
+class NotImplementedError extends GeneralError {
+    constructor(method_name) {
+        super('API "' + method_name + '" is not implemented', 501)
+        this.errorType = 1
+    }
+}
+
+
+module.exports = {
+    GeneralError,
+    NotImplementedError
+}

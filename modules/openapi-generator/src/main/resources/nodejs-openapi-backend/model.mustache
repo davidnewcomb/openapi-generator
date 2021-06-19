@@ -5,7 +5,7 @@
 {{description}}{{^description}}(no description){{/description}}
 */
 
-export default class {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}} {
+class {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}} {
 
     contructor() {
 {{#vars}}
@@ -23,5 +23,6 @@ export default class {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}} {
 {{/vars}}
 }
 
+module.exports = {{#lambda.pascalcase}}{{classname}}{{/lambda.pascalcase}}
 {{/model}}
 {{/models}}

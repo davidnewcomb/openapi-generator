@@ -43,6 +43,7 @@ public class NodejsOpenapiBackendServerCodegen extends DefaultCodegen implements
         supportingFiles.add(new SupportingFile("handlerbase.mustache", "Apis", "HandlerBase.js"));
         supportingFiles.add(new SupportingFile("openapi.mustache", "api", "openapi.yaml"));
         supportingFiles.add(new SupportingFile("index.mustache", "", "index.js"));
+        supportingFiles.add(new SupportingFile("errors.mustache", "Apis", "Errors.js"));
     }
     
     @Override
