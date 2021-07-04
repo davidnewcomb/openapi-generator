@@ -1,3 +1,5 @@
+const { GeneralError, NotImplementedError } = require('./Apis/Errors')
+
 {{#modelPackage}}
 {{#models}}
 {{#model}}
@@ -44,4 +46,7 @@ module.exports = {
 {{/apiInfo}}
 {{/generateApiDocs}}
 
+    // Exceptions
+    GeneralError,
+    NotImplementedError
 }

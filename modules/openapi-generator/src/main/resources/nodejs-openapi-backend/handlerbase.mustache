@@ -1,11 +1,11 @@
-const {NotImplementedError} = require('./Errors')
+const { GeneralError, NotImplementedError } = require('./Errors')
 
 
 const HandlerBase = class {
 
     constructor(name, debug = false) {
         if (name === undefined || name === '') {
-            throw new Error('name can not be empty')
+            throw new GeneralError('name can not be empty')
         }
         this.name = name
         this.debug = true
@@ -15,6 +15,7 @@ const HandlerBase = class {
 
     async expressHandler(api, context, req, res) {
         try {
+        
             if (api === null) {
                 throw new NotImplementedError(this.operationId())
             }
@@ -27,12 +28,14 @@ const HandlerBase = class {
                 {
                     method: req.method,
                     path: req.url,
-                    headers: headers
+                    headers: headers,
+                    body: req.body,
+                    cookies: req.cookies
                 }
                 , api.getOperation(this.operationId()))
 
-            console.log('****op id='+ this.operationId())
-            console.log('****parsedRequest='+ JSON.stringify(parsedRequest, null, 4))
+            //console.log('****op id='+ this.operationId())
+            //console.log('****parsedRequest='+ JSON.stringify(parsedRequest, null, 4))
 
             const params = {}
             context.operation.parameters.forEach((item, i) => {
@@ -40,28 +43,61 @@ const HandlerBase = class {
                     params[item.name] = parsedRequest.params[item.name]
                 } else if (item.in === 'query') {
                     params[item.name] = parsedRequest.query[item.name]
+                } else if (item.in === 'header') {
+                    params[item.name] = parsedRequest.headers[item.name]
+                } else if (item.in === 'cookie') {
+                    params[item.name] = parsedRequest.cookies[item.name]
                 } else {
                     console.err('*** ERROR implement parameter type "' + item.in + '"')
                 }
             })
-            console.log('====================================')
-            console.log('API Handler: '+ this.operationId())
-            console.log('Parameters: '+ JSON.stringify(params, null, 4))
-            console.log('------------------------------------')
+            
+            if (parsedRequest.method != "get") {
+                params['body'] = parsedRequest.requestBody
+            } else {
+                params['body'] = {}
+            }
+            
+            if (this.debug) {
+                console.log('====================================')
+                console.log('API Handler: '+ this.operationId())
+                console.log('Parameters: '+ JSON.stringify(params, null, 4))
+                console.log('------------------------------------')
+            }
+            
+            let reply = null
+            let ex = null
+            try {
+                reply = await this.handler(params)
+            } catch (err) {
+                ex = err
+            }
 
-            const ret = await this.handler(params)
+            if (this.debug) {
+                console.log('------------------------------------')
+                if (ex !== null) {
+                    console.log('Returned (Error): '+ JSON.stringify(ex, null, 4))
+                } else {
+                    console.log('Returned: '+ JSON.stringify(reply, null, 4))
+                }
+                console.log('====================================')
+            }
 
-            console.log('------------------------------------')
-            console.log('Returned: '+ JSON.stringify(ret, null, 4))
-            console.log('====================================')
-
-            res.json(ret)
+            if (ex === null) {
+                res.json(reply)
+            } else {
+                res.status(ex.getCode()).json({ err: ex.getPacket() })
+            }
 
         } catch (err) {
             if (this.debug) {
                 console.log('HandlerBase:err', JSON.stringify(err, null, 4))
             }
-            res.status(err.getCode()).json({ err: err.getPacket() })
+            if (err.errorType == undefined) {
+                console.log('HandlerBase:err', JSON.stringify(err, null, 4))
+            } else {
+                res.status(err.getCode()).json({ err: err.getPacket() })
+            }
         }
 
     }
