@@ -58,6 +58,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
     public static final String POD_SCREENSHOTS = "podScreenshots";
     public static final String POD_DOCUMENTATION_URL = "podDocumentationURL";
     public static final String READONLY_PROPERTIES = "readonlyProperties";
+    public static final String REMOVE_MIGRATION_PROJECT_NAME_CLASS = "removeMigrationProjectNameClass";
     public static final String SWIFT_USE_API_NAMESPACE = "swiftUseApiNamespace";
     public static final String DEFAULT_POD_AUTHORS = "OpenAPI Generator";
     public static final String LENIENT_TYPE_CAST = "lenientTypeCast";
@@ -81,6 +82,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
     protected boolean objcCompatible = false;
     protected boolean lenientTypeCast = false;
     protected boolean readonlyProperties = false;
+    protected boolean removeMigrationProjectNameClass = false;
     protected boolean swiftUseApiNamespace = false;
     protected boolean useSPMFileStructure = false;
     protected String swiftPackagePath = "Classes" + File.separator + "OpenAPIs";
@@ -263,6 +265,8 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
                 "Documentation URL used for Podspec"));
         cliOptions.add(new CliOption(READONLY_PROPERTIES, "Make properties "
                 + "readonly (default: false)"));
+        cliOptions.add(new CliOption(REMOVE_MIGRATION_PROJECT_NAME_CLASS, "Make properties "
+                + "removeMigrationProjectNameClass (default: false)"));
         cliOptions.add(new CliOption(SWIFT_USE_API_NAMESPACE,
                 "Flag to make all the API classes inner-class "
                         + "of {{projectName}}API"));
@@ -447,8 +451,14 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         }
         additionalProperties.put(READONLY_PROPERTIES, readonlyProperties);
 
+        // Setup removeMigrationProjectNameClass option, which keeps or remove the projectName class
+        if (additionalProperties.containsKey(REMOVE_MIGRATION_PROJECT_NAME_CLASS)) {
+            setRemoveMigrationProjectNameClass(convertPropertyToBooleanAndWriteBack(REMOVE_MIGRATION_PROJECT_NAME_CLASS));
+        }
+        additionalProperties.put(REMOVE_MIGRATION_PROJECT_NAME_CLASS, removeMigrationProjectNameClass);
+
         // Setup swiftUseApiNamespace option, which makes all the API
-        // classes inner-class of {{projectName}}
+        // classes inner-class of {{projectName}}API
         if (additionalProperties.containsKey(SWIFT_USE_API_NAMESPACE)) {
             setSwiftUseApiNamespace(convertPropertyToBooleanAndWriteBack(SWIFT_USE_API_NAMESPACE));
         }
@@ -674,8 +684,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(name)) {
             String modelName = "Model" + name;
-            LOGGER.warn(name + " (reserved word) cannot be used as model name. Renamed to "
-                    + modelName);
+            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", name, modelName);
             return modelName;
         }
 
@@ -683,9 +692,8 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         if (name.matches("^\\d.*")) {
             // e.g. 200Response => Model200Response (after camelize)
             String modelName = "Model" + name;
-            LOGGER.warn(name
-                    + " (model name starts with number) cannot be used as model name."
-                    + " Renamed to " + modelName);
+            LOGGER.warn("{} (model name starts with number) cannot be used as model name. Renamed to {}", name,
+                    modelName);
             return modelName;
         }
 
@@ -785,14 +793,13 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         // method name cannot use reserved keyword, e.g. return
         if (isReservedWord(operationId)) {
             String newOperationId = camelize(("call_" + operationId), true);
-            LOGGER.warn(operationId + " (reserved word) cannot be used as method name."
-                    + " Renamed to " + newOperationId);
+            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, newOperationId);
             return newOperationId;
         }
 
         // operationId starts with a number
         if (operationId.matches("^\\d.*")) {
-            LOGGER.warn(operationId + " (starting with a number) cannot be used as method name. Renamed to " + camelize(sanitizeName("call_" + operationId), true));
+            LOGGER.warn("{} (starting with a number) cannot be used as method name. Renamed to {}", operationId, camelize(sanitizeName("call_" + operationId), true));
             operationId = camelize(sanitizeName("call_" + operationId), true);
         }
 
@@ -805,7 +812,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         // sanitize name
         name = sanitizeName(name);
 
-        // if it's all uppper case, do nothing
+        // if it's all upper case, do nothing
         if (name.matches("^[A-Z_]*$")) {
             return name;
         }
@@ -835,7 +842,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
         // replace - with _ e.g. created-at => created_at
         name = name.replaceAll("-", "_");
 
-        // if it's all uppper case, do nothing
+        // if it's all upper case, do nothing
         if (name.matches("^[A-Z_]*$")) {
             return name;
         }
@@ -902,6 +909,10 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
 
     public void setReadonlyProperties(boolean readonlyProperties) {
         this.readonlyProperties = readonlyProperties;
+    }
+
+    public void setRemoveMigrationProjectNameClass(boolean removeMigrationProjectNameClass) {
+        this.removeMigrationProjectNameClass = removeMigrationProjectNameClass;
     }
 
     public void setResponseAs(String[] responseAs) {
@@ -1107,7 +1118,7 @@ public class Swift5ClientCodegen extends DefaultCodegen implements CodegenConfig
                 if (exitValue != 0) {
                     LOGGER.error("Error running the command ({}). Exit value: {}", command, exitValue);
                 } else {
-                    LOGGER.info("Successfully executed: " + command);
+                    LOGGER.info("Successfully executed: {}", command);
                 }
             } catch (InterruptedException | IOException e) {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());

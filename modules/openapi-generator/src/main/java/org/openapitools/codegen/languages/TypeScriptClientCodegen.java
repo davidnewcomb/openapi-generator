@@ -26,6 +26,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 import static org.openapitools.codegen.utils.StringUtils.underscore;
@@ -166,13 +168,16 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
         typeMapping.put("object", "any");
         typeMapping.put("integer", "number");
         typeMapping.put("Map", "any");
+        typeMapping.put("map", "any");
         typeMapping.put("date", "string");
         typeMapping.put("DateTime", "Date");
         typeMapping.put("binary", "any");
         typeMapping.put("File", "any");
+        typeMapping.put("file", "any");
         typeMapping.put("ByteArray", "string");
         typeMapping.put("UUID", "string");
         typeMapping.put("Error", "Error");
+        typeMapping.put("AnyType", "any");
 
 
         cliOptions.add(new CliOption(NPM_NAME, "The name under which you want to publish generated npm package." +
@@ -380,7 +385,7 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
             name = "_u";
         }
 
-        // if it's all uppper case, do nothing
+        // if it's all upper case, do nothing
         if (name.matches("^[A-Z_]*$")) {
             return name;
         }
@@ -396,40 +401,58 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
     }
 
     @Override
-    public String toModelName(String name) {
-        name = sanitizeName(name); // FIXME: a parameter should not be assigned. Also declare the methods parameters as 'final'.
+    public String toModelName(final String name) {
+        String fullModelName = name;
+        fullModelName = addPrefix(fullModelName, modelNamePrefix);
+        fullModelName = addSuffix(fullModelName, modelNameSuffix);
+        return toTypescriptTypeName(fullModelName, "Model");
+    }
 
-        if (!StringUtils.isEmpty(modelNamePrefix)) {
-            name = modelNamePrefix + "_" + name;
+    protected String addPrefix(String name, String prefix) {
+        if (!StringUtils.isEmpty(prefix)) {
+            name = prefix + "_" + name;
+        }
+        return name;
+    }
+
+    protected String addSuffix(String name, String suffix) {
+        if (!StringUtils.isEmpty(suffix)) {
+            name = name + "_" + suffix;
         }
 
-        if (!StringUtils.isEmpty(modelNameSuffix)) {
-            name = name + "_" + modelNameSuffix;
-        }
+        return name;
+    }
+
+    protected String toTypescriptTypeName(final String name, String safePrefix) {
+        ArrayList<String> exceptions = new ArrayList<String>(Arrays.asList("\\|", " "));
+        String sanName = sanitizeName(name, "(?![| ])\\W", exceptions);
+
+        sanName = camelize(sanName);
 
         // model name cannot use reserved keyword, e.g. return
-        if (isReservedWord(name)) {
-            String modelName = camelize("model_" + name);
-            LOGGER.warn(name + " (reserved word) cannot be used as model name. Renamed to " + modelName);
+        // this is unlikely to happen, because we have just camelized the name, while reserved words are usually all lowercase
+        if (isReservedWord(sanName)) {
+            String modelName = safePrefix + sanName;
+            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", sanName, modelName);
             return modelName;
         }
 
         // model name starts with number
-        if (name.matches("^\\d.*")) {
-            String modelName = camelize("model_" + name); // e.g. 200Response => Model200Response (after camelize)
-            LOGGER.warn(name + " (model name starts with number) cannot be used as model name. Renamed to " + modelName);
+        if (sanName.matches("^\\d.*")) {
+            String modelName = safePrefix + sanName; // e.g. 200Response => Model200Response
+            LOGGER.warn("{} (model name starts with number) cannot be used as model name. Renamed to {}", sanName,
+                    modelName);
             return modelName;
         }
 
-        if (languageSpecificPrimitives.contains(name)) {
-            String modelName = camelize("model_" + name);
-            LOGGER.warn(name + " (model name matches existing language type) cannot be used as a model name. Renamed to " + modelName);
+        if (languageSpecificPrimitives.contains(sanName)) {
+            String modelName = safePrefix + sanName;
+            LOGGER.warn("{} (model name matches existing language type) cannot be used as a model name. Renamed to {}",
+                    sanName, modelName);
             return modelName;
         }
 
-        // camelize the model name
-        // phone_number => PhoneNumber
-        return camelize(name);
+        return sanName;
     }
 
     @Override
@@ -544,7 +567,9 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
     public String getSchemaType(Schema p) {
         String openAPIType = super.getSchemaType(p);
         String type = null;
-        if (typeMapping.containsKey(openAPIType)) {
+        if (ModelUtils.isComposedSchema(p)) {
+            return openAPIType;
+        } else if (typeMapping.containsKey(openAPIType)) {
             type = typeMapping.get(openAPIType);
             if (languageSpecificPrimitives.contains(type))
                 return type;
@@ -1007,12 +1032,12 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
      * @param schema the schema that we need an example for
      * @param objExample the example that applies to this schema, for now only string example are used
      * @param indentationLevel integer indentation level that we are currently at
-     *                         we assume the indentaion amount is 2 spaces times this integer
+     *                         we assume the indentation amount is 2 spaces times this integer
      * @param prefix the string prefix that we will use when assigning an example for this line
      *               this is used when setting key: value, pairs "key: " is the prefix
      *               and this is used when setting properties like some_property='some_property_example'
-     * @param exampleLine this is the current line that we are generatign an example for, starts at 0
-     *                    we don't indentin the 0th line because using the example value looks like:
+     * @param exampleLine this is the current line that we are generating an example for, starts at 0
+     *                    we don't indent the 0th line because using the example value looks like:
      *                    prop = ModelName( line 0
      *                        some_property='some_property_example' line 1
      *                    ) line 2
@@ -1155,7 +1180,11 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
 
                     // this seed makes it so if we have [a-z] we pick a
                     Random random = new Random(18);
-                    example = rgxGen.generate(random);
+                    if (rgxGen != null){
+                        example = rgxGen.generate(random);
+                    } else {
+                        throw new RuntimeException("rgxGen cannot be null. Please open an issue in the openapi-generator github repo.");
+                    }
                 } else if (schema.getMinLength() != null) {
                     example = "";
                     int len = schema.getMinLength().intValue();
@@ -1227,7 +1256,7 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
         } else if (ModelUtils.isComposedSchema(schema)) {
             ComposedSchema cm = (ComposedSchema) schema;
             List<Schema> ls = cm.getOneOf();
-            if (!ls.isEmpty()) {
+            if (ls != null && !ls.isEmpty()) {
                 return fullPrefix + toExampleValue(ls.get(0)) + closeChars;
             }
             return fullPrefix + closeChars;
@@ -1485,5 +1514,63 @@ public class TypeScriptClientCodegen extends DefaultCodegen implements CodegenCo
         p.setName(cp.paramName);
         setParameterExampleValue(cp, p);
         return cp;
+    }
+
+    @Override
+    public String toAnyOfName(List<String> names, ComposedSchema composedSchema) {
+        List<String> types = getTypesFromSchemas(composedSchema.getAnyOf());
+
+        return String.join(" | ", types);
+    }
+
+    @Override
+    public String toOneOfName(List<String> names, ComposedSchema composedSchema) {
+        List<String> types = getTypesFromSchemas(composedSchema.getOneOf());
+
+        return String.join(" | ", types);
+    }
+
+    @Override
+    public String toAllOfName(List<String> names, ComposedSchema composedSchema) {
+        List<String> types = getTypesFromSchemas(composedSchema.getAllOf());
+
+        return String.join(" & ", types);
+    }
+
+    /**
+     * Extracts the list of type names from a list of schemas.
+     * Excludes `AnyType` if there are other valid types extracted.
+     *
+     * @param schemas list of schemas
+     * @return list of types
+     */
+    protected List<String> getTypesFromSchemas(List<Schema> schemas) {
+        List<Schema> filteredSchemas = schemas.size() > 1
+                ? schemas.stream().filter(schema -> !"AnyType".equals(super.getSchemaType(schema))).collect(Collectors.toList())
+                : schemas;
+
+        return filteredSchemas.stream().map(schema -> {
+            String schemaType = getSchemaType(schema);
+            if (ModelUtils.isArraySchema(schema)) {
+                ArraySchema ap = (ArraySchema) schema;
+                Schema inner = ap.getItems();
+                schemaType = schemaType + "<" + getSchemaType(inner) + ">";
+            }
+            return schemaType;
+        }).distinct().collect(Collectors.toList());
+    }
+
+    @Override
+    protected void addImport(CodegenModel m, String type) {
+        if (type == null) {
+            return;
+        }
+
+        String[] parts = type.split("( [|&] )|[<>]");
+        for (String s : parts) {
+            if (needToImport(s)) {
+                m.imports.add(s);
+            }
+        }
     }
 }
