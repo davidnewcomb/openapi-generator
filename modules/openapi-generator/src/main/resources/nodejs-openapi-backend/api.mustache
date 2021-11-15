@@ -7,7 +7,7 @@
  */
 
 const HandlerBase = require('./HandlerBase')
-
+const { NotImplementedError } = require('./Errors')
 
 {{#operations}}
 {{#operation}}
@@ -31,7 +31,7 @@ class {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase ext
     {{#returnType}}
         // return new {{returnType}}()
     {{/returnType}}
-        throw new Error('{{operationId}} is not implemented')
+        throw new NotImplementedError('{{operationId}} is not implemented')
     }
 }
 const {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}HandlerBase = new {{#lambda.pascalcase}}{{operationId}}{{/lambda.pascalcase}}HandlerBase(true)
